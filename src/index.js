@@ -21,12 +21,11 @@ io.on("connection", (socket) => {
   socket.broadcast.emit("join", "A New User has joined...")
 
   socket.on("sendMessage", (data, callback) => {
-    if(data.length > 10){
+    if(data.length > 50){
       return callback("Exceeding Characters")
     }
 
-    message = data
-    io.emit("message", message)
+    io.emit("message", data)
     callback("Delivered")
 
   })
@@ -37,7 +36,7 @@ io.on("connection", (socket) => {
   })
 
   socket.on("disconnect", () => {
-    io.emit("join", "User has left...")
+    io.emit("left", "User has left...")
   })
 })
 
