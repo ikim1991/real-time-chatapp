@@ -16,18 +16,34 @@ const formatDatetime = (date) => {
   return `[${year}-${month}-${day} ${hour}:${minute}]`
 }
 
-socket.on("message", (data) => {
+const parseLocation = (query) => {
+  const parameters = query.replace("?", "").split("&")
+  return {
+    username: parameters[0].replace("username=", ""),
+    room: parameters[1].replace("room=", "")
+  }
+}
+
+const { username, room } = parseLocation(location.search)
+
+socket.on("introduction", (data) => {
   const message = document.createElement("p")
   message.textContent = `${formatDatetime(data.createdAt)} ${data.text}`
   $messenger.appendChild(message)
 })
 
-socket.on("join", (data) => {
+socket.on("message", (data, user) => {
+  const message = document.createElement("p")
+  message.textContent = `${formatDatetime(data.createdAt)} ${user.username}: ${data.text}`
+  $messenger.appendChild(message)
+})
+
+socket.on("join", (data, user) => {
   $sendLocationButton.removeAttribute("disabled")
   const location = document.createElement("a")
   const message = document.createElement("p")
   location.textContent = "My Location"
-  message.textContent = `${formatDatetime(data.createdAt)} `
+  message.textContent = `${formatDatetime(data.createdAt)} ${user.username}: `
   location.setAttribute("href", data.url)
   location.setAttribute("target", "_blank")
   const element = $messenger.appendChild(message).appendChild(location)
@@ -48,9 +64,8 @@ $messageForm.addEventListener("submit", (e) => {
     $messageFormInput.focus()
 
     if(error){
-      return console.log(error)
+      return alert(error)
     }
-    console.log("Message Delivered")
   })
 })
 
@@ -68,9 +83,16 @@ $sendLocationButton.addEventListener("click", (e) => {
     socket.emit("sendLocation", {
       latitude: position.coords.latitude,
       longitude: position.coords.longitude
-    }, (message) => {
+    }, () => {
       $sendLocationButton.removeAttribute("disabled")
-      console.log(message)
     })
   })
+})
+
+socket.emit("login", { username, room }, (error) => {
+  if(error){
+      alert(error)
+      location.href = "/"
+  }
+  console.log("User Successfully Created...")
 })

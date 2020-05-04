@@ -3,18 +3,21 @@
   <head>
     <meta charset="utf-8">
     <title>My Chat App</title>
+    <link rel="stylesheet" href="./assets/css/styles.min.css">
+    <link rel="icon" href="./assets/img/favicon.png">
   </head>
   <body>
-    <h1>Chat App</h1>
-    <form id="message-form">
-      <input type="text" name="message" placeholder="Input Message...">
-      <button type="submit" name="button">Send</button>
-    </form>
-    <button type="button" id="location">Send Location</button>
-    <div id="messenger">
-
+    <div class="centered-form">
+      <div class="centered-form__box">
+        <h1>Join</h1>
+        <form action="/chat.html">
+          <label>Display Name</label>
+          <input type="text" name="username" placeholder="Display Name" required>
+          <label>Room</label>
+          <input type="text" name="room" placeholder="Room" required>
+          <button>Join</button>
+        </form>
+      </div>
     </div>
   </body>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/chat.js"></script>
 </html>
