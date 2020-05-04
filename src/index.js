@@ -7,36 +7,37 @@ const app = express()
 const server = http.createServer(app)
 const io = socketio(server)
 
+const { generateMessage, generateLocation } = require("./utils/messages")
+
 const port = process.env.PORT
 const publicDirectory = path.join(__dirname, "../public")
 
 app.use(express.static(publicDirectory))
 
 let count = 0;
-let message = "Welcome!"
 
 io.on("connection", (socket) => {
   console.log("Client Connected")
-  socket.emit("message", message)
-  socket.broadcast.emit("join", "A New User has joined...")
+  socket.emit("message", generateMessage("Welcome!"))
+  socket.broadcast.emit("message", generateMessage("A New User has joined..."))
 
   socket.on("sendMessage", (data, callback) => {
     if(data.length > 50){
       return callback("Exceeding Characters")
     }
 
-    io.emit("message", data)
+    io.emit("message", generateMessage(data))
     callback("Delivered")
 
   })
 
   socket.on("sendLocation", (coords, callback) => {
-    io.emit("join", `https://google.ca/maps?q=${coords.latitude},${coords.longitude}`)
+    io.emit("join", generateLocation(coords))
     callback("Location Shared!")
   })
 
   socket.on("disconnect", () => {
-    io.emit("left", "User has left...")
+    io.emit("message", generateMessage("User has left..."))
   })
 })
 
