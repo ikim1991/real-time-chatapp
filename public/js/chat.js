@@ -6,6 +6,16 @@ const $messageFormInput = $messageForm.querySelector("input")
 const $messageFormButton = $messageForm.querySelector("button")
 const $sendLocationButton = document.querySelector("#location")
 const $messenger = document.querySelector("#messenger")
+const $sidebar = document.querySelector(".chat__sidebar")
+const $title = document.createElement("h3")
+const $userTitle = document.createElement("h4")
+$title.classList.add("room-title")
+$userTitle.classList.add("list-title")
+$sidebar.appendChild($title)
+$sidebar.appendChild($userTitle)
+const $usersDiv = document.createElement("div")
+$sidebar.appendChild($usersDiv)
+$usersDiv.classList.add("users")
 
 const formatDatetime = (date) => {
   const year = new Date(date).getFullYear()
@@ -26,27 +36,46 @@ const parseLocation = (query) => {
 
 const { username, room } = parseLocation(location.search)
 
+const autoscroll = () => {
+  if($messageFormInput === document.activeElement){
+    let scrollValue = $messenger.scrollHeight - $messenger.offsetHeight
+    $messenger.scrollBy(0, scrollValue)
+  }
+}
+
 socket.on("introduction", (data) => {
   const message = document.createElement("p")
   message.textContent = `${formatDatetime(data.createdAt)} ${data.text}`
+  message.classList.add("admin")
   $messenger.appendChild(message)
+  autoscroll()
 })
 
 socket.on("message", (data, user) => {
   const message = document.createElement("p")
-  message.textContent = `${formatDatetime(data.createdAt)} ${user.username}: ${data.text}`
+  const userName = document.createElement("p")
+  userName.classList.add("admin")
+  userName.textContent = `${formatDatetime(data.createdAt)} ${user.username}`
+  message.textContent = `${data.text}`
+  $messenger.appendChild(userName)
   $messenger.appendChild(message)
+  autoscroll()
 })
 
 socket.on("join", (data, user) => {
   $sendLocationButton.removeAttribute("disabled")
-  const location = document.createElement("a")
-  const message = document.createElement("p")
-  location.textContent = "My Location"
-  message.textContent = `${formatDatetime(data.createdAt)} ${user.username}: `
-  location.setAttribute("href", data.url)
-  location.setAttribute("target", "_blank")
-  const element = $messenger.appendChild(message).appendChild(location)
+  const url = document.createElement("a")
+  const userName = document.createElement("p")
+  userName.classList.add("admin")
+  url.classList.add("link")
+  url.textContent = "My Location"
+  userName.textContent = `${formatDatetime(data.createdAt)} ${user.username}`
+  url.setAttribute("href", data.url)
+  url.setAttribute("target", "_blank")
+  $messenger.appendChild(userName)
+  $messenger.appendChild(url)
+  $messageFormInput.focus()
+  autoscroll()
 })
 
 $messageForm.addEventListener("submit", (e) => {
@@ -95,4 +124,16 @@ socket.emit("login", { username, room }, (error) => {
       location.href = "/"
   }
   console.log("User Successfully Created...")
+  $title.textContent = room
+})
+
+socket.on("roomData", ({ room, users }) => {
+  $userTitle.textContent = "Users"
+  $usersDiv.innerHTML = ""
+  for(user of users){
+    let p = document.createElement("p")
+    p.textContent = user.username
+    $usersDiv.appendChild(p)
+  }
+  $sidebar.appendChild($usersDiv)
 })
